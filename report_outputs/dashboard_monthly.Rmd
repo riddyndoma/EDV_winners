@@ -49,6 +49,7 @@ current_clean_cases <- get_latest_data("^cases.*.rds", clean_folder)
 current_clean_contacts <- get_latest_data("^contacts.*.rds", clean_folder)
 current_clean_followups <- get_latest_data("^followups.*.rds", clean_folder)
 current_clean_locations <- get_latest_data("^location.*.rds", clean_folder)
+current_clean_relationships <- get_latest_data("^relationships.*.rds", clean_folder)
 
 current_clean_cases
 current_clean_cases <- rio::import(current_clean_cases) %>%
@@ -65,6 +66,12 @@ current_clean_followups <- rio::import(current_clean_followups) %>%
 current_clean_locations
 current_clean_locations <- rio::import(current_clean_locations) %>%
   as_tibble()
+
+current_clean_relationships
+current_clean_relationships <- rio::import(current_clean_relationships) %>%
+  as_tibble()
+
+
 ```
 
 
@@ -368,61 +375,41 @@ g
 ```
 
 
-### Gueris suivis par semaine, selon le sexe
+### Catégorisation des guéris selon les dates de sortie CTE
 
-```{r survivors-followed-weekly, fig.height=3.5,fig.align='center'}
+```{r winners-out-cte, fig.height=3.5,fig.align='center'}
 
-men_followed_current_week=getFollowersBySex(dfw_30days_followups,current_week,"m")
-men_followed_1week_ago=getFollowersBySex(dfw_30days_followups,current_week-1,"m")
-men_followed_2weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-2,"m")
-men_followed_3weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-3,"m")
-men_followed_4weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-4,"m")
+library("lubridate")
 
-men_followed_weekly=rbind(men_followed_current_week,men_followed_1week_ago,men_followed_2weeks_ago,men_followed_3weeks_ago,men_followed_4weeks_ago)
-setDT(men_followed_weekly, keep.rownames = "semaine") #Convert rowname to first column
-men_followed_weekly=men_followed_weekly%>%
-  mutate(sexe="Homme")
-#-----------------------------------------------------------------------
-women_followed_current_week=getFollowersBySex(dfw_30days_followups,current_week,"f")
-women_followed_1week_ago=getFollowersBySex(dfw_30days_followups,current_week-1,"f")
-women_followed_2weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-2,"f")
-women_followed_3weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-3,"f")
-women_followed_4weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-4,"f")
+df_cases <- current_clean_cases %>%
+   select(uuid,date_of_reporting,gender) %>%
+  mutate(p = interval( as.Date(date_of_reporting), Sys.Date()) %/% months(1),
+         segment=case_when(
+           p <= 6 ~ "0 - 6 mois",
+           p > 6 & p < 13 ~ "7 - 12 mois",
+           p > 12 & p < 19 ~ "13 - 18 mois",
+           p > 18 & p < 25 ~ "19 - 24 mois",
+           p > 24 ~ "25 mois et +"
+         )) %>%
+  mutate(gender=case_when(
+    gender =='feminin' ~ 'Femme',
+    gender =='masculin' ~ 'Homme'
+  ))%>%
+  group_by(segment,gender) %>%
+  filter(!is.na(gender)) %>%
+  count()
 
-women_followed_weekly=rbind(women_followed_current_week,women_followed_1week_ago,women_followed_2weeks_ago,women_followed_3weeks_ago,women_followed_4weeks_ago)
-setDT(women_followed_weekly, keep.rownames = "semaine") #Convert rowname to first column
-women_followed_weekly=women_followed_weekly%>%
-  mutate(sexe="Femme")
-#------------------------------------------------------------------------
+g <- ggplot(data=df_cases, aes(x=reorder(segment, -n), y=n, fill=segment)) +
+geom_bar(stat="identity")+theme_classic() +labs(x="",y="Effectifs", title = "", subtitle = )
+g <- g+geom_text( aes(label = n, y = n),position = position_dodge(0.9),vjust = 0)+facet_grid(~gender)
+g <- g+scale_fill_poke(pokemon = 'Quilava', spread = 6)
+g <- g+theme(axis.text.x = element_blank(),axis.ticks.x = element_blank())
+g <- g+theme(legend.background = element_rect(fill="#b2c8d6",
+                                  size=0.5, linetype="solid",
+                                  colour ="#141933"))
+g
 
-all_followed_current_week=getFollowersBySex(dfw_30days_followups,current_week,"")
-all_followed_1week_ago=getFollowersBySex(dfw_30days_followups,current_week-1,"")
-all_followed_2weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-2,"")
-all_followed_3weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-3,"")
-all_followed_4weeks_ago=getFollowersBySex(dfw_30days_followups,current_week-4,"")
 
-all_followed_weekly=rbind(all_followed_current_week,all_followed_1week_ago,all_followed_2weeks_ago,all_followed_3weeks_ago,all_followed_4weeks_ago)
-setDT(all_followed_weekly, keep.rownames = "semaine") #Convert rowname to first column
-all_followed_weekly=all_followed_weekly%>%
-  mutate(sexe="ensemble")
-
-#-----------------------------------------------------------------------
-
-people_seen_weekly=rbind(all_followed_weekly,men_followed_weekly,women_followed_weekly) %>%
-  arrange(semaine)
-
-# colour <- c("#58A8E0","#ed6b90","#06d6a0")
-colour <-c("#ec524b","#9ad3bc","#f5b461")
-
-fig <- ggplot2::ggplot(data = people_seen_weekly)+geom_line(aes(x=semaine,y=n,colour = sexe, group=sexe),size=1)
-fig <- fig + theme(legend.position="bottom", legend.direction="horizontal", legend.title = element_blank())
-fig <- fig + theme_classic()+labs(x="",y="Nombre de gueris", title = "Guéris suivis par semaine, selon le sexe", subtitle = )
-fig <- fig + scale_colour_manual(values=colour)
-
-fig <- fig + theme(legend.background = element_rect(fill="#f2f4c0",
-                                  size=0.5, linetype="solid", 
-                                  colour ="#222831"))
-fig
 
 ```
 
@@ -532,9 +519,6 @@ tab_sick_prop=tab_sick_prop %>%
 #------------------------------------------------------
 
 
-  
-  
-  
   
   tab_sick_prop=tab_sick_prop %>%
     add_row(Designation="Proportion des contre-reference reçus au site d'autre Patologies",n="0 %",va=0) %>% #Adding rows for indicators of no data untill now
@@ -1564,32 +1548,59 @@ fig
 
 ### Généraux -> 2 
 ```{r indi-generaux-2}
-library("lubridate")
-df_cases <- current_clean_cases %>%
-   select(uuid,date_of_reporting) %>%
-  mutate(p = interval( as.Date(date_of_reporting), Sys.Date()) %/% months(1),
-         segment=case_when(
-           p <= 6 ~ "0 - 6 mois",
-           p > 6 & p < 13 ~ "7 - 12 mois",
-           p > 12 & p < 19 ~ "13 - 18 mois",
-           p > 18 & p < 25 ~ "19 - 24 mois",
-           p > 24 ~ "25 mois et +"
-         )) %>%
-  group_by(segment) %>%
-  count()
 
-g=ggplot(data=df_cases, aes(x=reorder(segment, -n), y=n, fill=segment,stat="identity")) +
-  # geom_bar(stat="identity")+theme_classic(base_size = 14) +labs(x="",y="Effectifs", title = "", subtitle = )
-geom_bar(stat="identity")+theme_classic() +labs(x="",y="Effectifs", title = "", subtitle = )
-g=g+geom_text( aes(label = n, y = n),position = position_dodge(0.9),vjust = 0)
-g=g+scale_fill_poke(pokemon = 'Quilava', spread = 6)
-# g=g+theme(axis.text.x = element_text(angle = 145, hjust = 1, vjust = 0),axis.line = element_blank(),axis.ticks.x = element_blank())
-g=g+theme(axis.text.x = element_blank(),axis.ticks.x = element_blank())
-g=g+theme(legend.background = element_rect(fill="#b2c8d6",
-                                  size=0.5, linetype="solid",
-                                  colour ="#141933"))
-g
 
+```
+
+
+### Complement
+```{r}
+test4 <- getRegularityFollowups(current_clean_contacts,current_clean_followups,4)
+test3 <- getRegularityFollowups(current_clean_contacts,current_clean_followups,3)
+test3 <- test3[sample(nrow(test3), 1000),] %>%
+  # test3 %>%
+  # head(40) %>%
+  filter(v==1)
+test4 <- test4[sample(nrow(test4), 1000),] %>%
+  # head(40) %>%
+  filter(v==1)
+people_regularity=rbind(test4,test3) %>%
+  # head(20) %>%
+  arrange(month_val) %>%
+  distinct(month_val,v,i)
+
+# people_psycho_weekly$semaine <- factor(people_psycho_weekly$semaine, levels = rev(levels(people_psycho_weekly$semaine))) 
+
+# colour <- c("#58A8E0","#ed6b90","#06d6a0")
+colour <-c("#ec524b","#9ad3bc","#f5b461","#58A8E0","#283747")
+
+# fig <- ggplot2::ggplot(data = people_regularity)+geom_line(aes(x=month_val, y=i, group=i),size=3)
+# fig <- fig + theme(legend.position="bottom", legend.direction="horizontal", legend.title = element_blank())
+# fig <- fig + theme_classic()+labs(x="",y="ID Guéris", title = "La régularité des guéris au suivi", subtitle = )
+# fig <- fig + scale_colour_manual(values=colour)
+# 
+# fig <- fig + theme(legend.background = element_rect(fill="#f2f4c0",
+#                                   size=1, linetype="solid", 
+#                                   colour ="#222831"))
+# fig
+
+
+
+```
+
+
+```{r}
+
+library(ggplot2)
+people_regularity <- people_regularity %>%
+  mutate(month_val = paste0("m-",people_regularity$month_val))
+  rand_people <- people_regularity[sample(nrow(people_regularity), 40),] %>%
+    mutate(presence=v,
+           mois=month_val,
+           id=i)
+  # group_by(month_val)
+ggplot(data = rand_people, aes(x=mois, y=id, fill=presence)) + 
+  geom_tile()
 ```
 
 

@@ -797,6 +797,16 @@ location_rds_file_name
 rio::export(hierarchy_join_renamed,
             file.path(clean_folder, location_rds_file_name))
 
+## export relationships file
+relationships_rds_file_name <- sprintf(
+  "%sclean_%s.rds",
+  "relationships_",
+  format(database_date, "%Y-%m-%d"))
+
+relationships_rds_file_name
+rio::export(relationships,
+            file.path(clean_folder, relationships_rds_file_name))
+
 
 ## export cases file as csv
 cases_csv_file_name <- sprintf(
