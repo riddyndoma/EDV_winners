@@ -7,8 +7,10 @@ outbreak_id <- "d5ee2e11-756f-453d-a891-9fcc93a942b1"
 
 ###################################################################################################
 # source required scripts, including packages that need to be installed
-#       this includes set_core_fields.R script, which ensures that collections have all the columns they need and set to NA those that don't exist
-#       otherwise, the JSON drops it if these questions were consistently not answered, which can break the scripts if its a core variable
+# this includes set_core_fields.R script, which ensures that collections have all the columns they 
+# need and set to NA those that don't exist
+# otherwise, the JSON drops it if these questions were consistently not answered, which can break
+# the scripts if its a core variable
 ###################################################################################################
 
 path_to_functions <- here::here("functions")
@@ -34,18 +36,14 @@ content <- content(response, as = "text") %>%
 access_token <- content$response$access_token
 access_token <- content$access_token  
 
-print(paste0("TOKEN ACCESS : "," "))
-print(access_token)
 
 ###################################################################################################
 # specify date ranges, for follow up filters - if your volume of follow up gets too large 
 #     see below commented out code in Follow Ups section for an example
     date_now <- format(Sys.time(), "%Y-%m-%dT23:59:59.999Z")
-    date_30d_ago <- format((Sys.Date() - 50), "%Y-%m-%dT23:59:59.999Z")
-# date_now <- "2020-11-30T23:59:59.999Z"
-# date_30d_ago <- "2020-11-01T23:59:59.999Z"
-    
-    
+    date_30d_ago <- format((Sys.Date() - 30), "%Y-%m-%dT23:59:59.999Z")
+  # date_now <- "2021-05-6T23:59:59.999Z"
+  # date_30d_ago <- "2021-04-01T23:59:59.999Z"
     
     
 ###################################################################################################
@@ -89,11 +87,11 @@ contacts <- as_tibble(fromJSON(json_contacts, flatten = TRUE)) %>%
   filter(followUp.status == "LNG_REFERENCE_DATA_CONTACT_FINAL_FOLLOW_UP_STATUS_TYPE_UNDER_FOLLOW_UP")#Les contacts sous suivi
 
 # import oubtreak Events 
-response_events <- GET(paste0(url,"api/outbreaks/",outbreak_id,"/events"), 
-                       add_headers(Authorization = paste("Bearer", access_token, sep = " "))
-)
-json_events <- content(response_events, as = "text")
-events <- as_tibble(fromJSON(json_events, flatten = TRUE))
+# response_events <- GET(paste0(url,"api/outbreaks/",outbreak_id,"/events"), 
+#                        add_headers(Authorization = paste("Bearer", access_token, sep = " "))
+# )
+# json_events <- content(response_events, as = "text")
+# events <- as_tibble(fromJSON(json_events, flatten = TRUE))
 
 # import oubtreak Contact of Contacts 
 response_contacts_of_contacts <- GET(paste0(url,"api/outbreaks/",outbreak_id,"/contacts-of-contacts"), 
@@ -139,6 +137,21 @@ response_users <- GET(paste0(url,"api/users"),
 )
 json_users <- content(response_users, as = "text")
 users <- as_tibble(fromJSON(json_users, flatten = TRUE))
+
+
+############################RDN#############################################
+#Complete followups for others month
+############################################################################
+# Call prep function for prepare
+prep <- here::here("preparation/prep_functions.R")
+source(prep)
+
+path_to_functions <- here::here("preparation/core_columns.R")
+source(path_to_functions)
+
+path_to_functions <- here::here("preparation/additional_followups.R")
+source(path_to_functions)
+#############################################################################
 
 
 ################################################################################################
