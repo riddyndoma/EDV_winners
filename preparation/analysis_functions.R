@@ -26,8 +26,32 @@ getFollowersByWeeks <- function(df,week_val,elem) {
   return(answer)
 }
 
-##########################GET FOLLOWERS BY WEEKS, BY SEXE ########################################
+####################################Followed people by month####################
+getFollowedPeopleByMonths <- function(df,months_val,elem) {
+  answer=NULL
+  if (elem=="vas") {
+    answer=df %>%
+      filter(substr(date_of_followup,0,7)== months_val & status == "Vu avec signe") %>%
+      count()
+    
+  }else if (elem=="vss"){
+    answer=df %>%
+      filter(substr(date_of_followup,0,7)== months_val & status == "Vu sans signe") %>%
+      count()
+    
+  }else if (elem=="all"){
+    answer=df %>%
+      filter(substr(date_of_followup,0,7)== months_val & (status == "Vu sans signe" | status == "Vu avec signe")) %>%
+      count()
+    
+  }
+  
+  answer=as.data.frame(answer)
+  rownames(answer)=c(paste0("Sem-",months_val)) #Renommage ligne pour porter numero de semaine
+  return(answer)
+}
 
+##########################GET FOLLOWERS BY WEEKS, BY SEXE ########################################
 getFollowersBySex <- function(df,week_val,elem) {
   answer=NULL
   if (elem=="m") {
@@ -55,7 +79,6 @@ getFollowersBySex <- function(df,week_val,elem) {
  
   return(answer)
 }
-
 
 ######################GET SURVIVORS BY SEX########################################################
 
@@ -319,9 +342,6 @@ getRegularityFollowups <- function(contacts,df_followups,month_val) {
   
   return(output)
 }
-
-
-
 
 
 
