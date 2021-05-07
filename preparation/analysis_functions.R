@@ -29,25 +29,24 @@ getFollowersByWeeks <- function(df,week_val,elem) {
 ####################################Followed people by month####################
 getFollowedPeopleByMonths <- function(df,months_val,elem) {
   answer=NULL
-  if (elem=="vas") {
+  if (elem=="m") {
     answer=df %>%
-      filter(substr(date_of_followup,0,7)== months_val & status == "Vu avec signe") %>%
+      filter(substr(date_of_followup,0,7)== months_val & gender == "Homme" & (status == "Vu sans signe" | status == "Vu avec signe")) %>%
       count()
     
-  }else if (elem=="vss"){
+  }else if(elem=="f") {
     answer=df %>%
-      filter(substr(date_of_followup,0,7)== months_val & status == "Vu sans signe") %>%
+      filter(substr(date_of_followup,0,7)== months_val & gender == "Femme" & (status == "Vu sans signe" | status == "Vu avec signe")) %>%
       count()
     
-  }else if (elem=="all"){
+  } else {
     answer=df %>%
       filter(substr(date_of_followup,0,7)== months_val & (status == "Vu sans signe" | status == "Vu avec signe")) %>%
       count()
-    
   }
   
   answer=as.data.frame(answer)
-  rownames(answer)=c(paste0("Sem-",months_val)) #Renommage ligne pour porter numero de semaine
+  rownames(answer)=c(months_val) #Renommage ligne pour porter numero de semaine
   return(answer)
 }
 

@@ -773,7 +773,11 @@ cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
   statusid == "lng_reference_data_contact_daily_follow_up_status_type_seen_not_ok" ~ "Vu avec signe",
   statusid == "lng_reference_data_contact_daily_follow_up_status_type_seen_ok" ~ "Vu sans signe"
 )) %>%
-  select(personid,date_of_followup,status)
+  mutate(gender=case_when(
+    contact_gender  == "lng_reference_data_category_gender_female" ~ "Femme",
+    contact_gender  == "lng_reference_data_category_gender_male" ~ "Homme"
+  )) %>%
+  select(personid,date_of_followup,status,gender)
 ###############################################################
 
 ## Save files with a date of database
