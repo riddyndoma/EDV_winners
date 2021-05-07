@@ -1,12 +1,11 @@
 ## This script is for cleaning the Go data data, revised to use the collections pulled directly from API !
 library(dplyr,warn.conflicts = FALSE)
-
 library(tidyr)
 library(rio)
 library(linelist)
 library(vctrs)
 
-options(max.print=1000000)
+options(max.print = 99999999)
 
 # check to see which of these are actually needed, take out those that are not.
 path_to_functions <- here::here("functions")
@@ -23,7 +22,6 @@ followups <- followups %>%
 cases <- cases %>%
   as_tibble()
 
-
 contacts <- contacts %>%
   as_tibble()
 
@@ -36,24 +34,36 @@ teams <- teams %>%
 users <- users %>%
   as_tibble()
 
-#########################MAKE COPY#################################################
+locations <- locations %>%
+  as_tibble()
 
+complete_followed_prep <- complete_followed_prep %>%
+  as_tibble()
+
+#######################Filter followups#########################################
+followups <- followups %>%
+  filter(statusId !='LNG_REFERENCE_DATA_CONTACT_DAILY_FOLLOW_UP_STATUS_TYPE_NOT_PERFORMED')
+
+#########################MAKE COPY##############################################
 copy_followups <- followups
 copy_cases <- cases
 copy_contacts <- contacts
 copy_relationships <- relationships
 copy_teams <- teams
 copy_users <- users
-
-#-----Data recovery---------
+copy_locations <- locations
+copy_complete_followed_prep <- complete_followed_prep
+###################DATA RECOVERY################################################
 # followups <- copy_followups
 # cases <- copy_cases
 # contacts <- copy_contacts
 # relationships <- copy_relationships
 # teams <- copy_teams
 # users <- copy_users
+# locations <- copy_locations
+# complete_followed_prep <- copy_complete_followed_prep
 
-#################### UNNEST TIBBLES ############################################
+################################################################################
 
 #Cases data, under follow up, active, not deleted, also unnest all nested fields
 
@@ -68,13 +78,14 @@ unnested_cases <- cases %>%
     questionnaireanswers.age,
     questionnaireanswers.sexe,
     questionnaireanswers.resultats),
-    keep_empty = TRUE, names_sep = "_")
+    keep_empty = TRUE, names_sep = "_") %>%
+  mutate(sexe=questionnaireanswers.sexe_value)
 
 
-fwps_colmns_checked <- AddingColumns(followups,followups_base_columns) #Adding some important columns who can missed
+fwps_columns_checked <- AddingColumns(followups,followups_core_columns) #Adding some important columns who can missed
 
 #Follow up data, under follow up, active, not deleted, also unnest all nested fields
-unnested_followups <- fwps_colmns_checked %>%
+unnested_followups <- fwps_columns_checked %>%
   filter(deleted == FALSE) %>%
   filter(contact.active == TRUE) %>%
   unnest(c(
@@ -212,7 +223,6 @@ unnested_followups <- fwps_colmns_checked %>%
 
 
 #Active contacts, currently under follow up (using follow up end date in case the status is off, as it sometimes is.); also unnest all nested fields
-
 unnested_contacts <- contacts %>%
   filter(deleted == FALSE) %>%
   filter(active == TRUE) %>%
@@ -251,12 +261,12 @@ locations <- locations %>%
   filter(deleted == FALSE)
 
 ####### STANDARDISE THE DATA ###################################################
-
 ## make variables lower cases and have underscore in names
 ## remove french character encoding.
 ## retain original location ids so that joins work
 # to add later - dateranges_typeid 0 and 1....right now they dont appear bc they are all null i guess
-cleaned_cases <- clean_data(unnested_cases, guess_dates = FALSE)  ## cleaning variable names
+
+cleaned_cases <- clean_data(unnested_cases, guess_dates = FALSE) 
 
 cleaned_contacts <- clean_data(unnested_contacts, guess_dates = FALSE)
 
@@ -270,8 +280,7 @@ cleaned_users <- clean_data(unnested_users, guess_dates = FALSE)
 
 cleaned_relationships <- clean_data(relationships, guess_dates = FALSE)
 
-#########################DISTINCT BY ID TO REMOVE DUPLICATE ####################
-
+# Distinct by ID to remove duplicate
 cleaned_cases <- cleaned_cases %>%
   distinct_at( vars(id),.keep_all = TRUE)
 
@@ -281,7 +290,8 @@ cleaned_contacts <- cleaned_contacts %>%
 cleaned_followups <- cleaned_followups %>%
   distinct_at( vars(id),.keep_all = TRUE)
 
-##############RENAME SOME VARIABLES AND SOME CONTENTS IN UPPERLOW###############
+# Rename some variables and make some contents Upperlow
+
 cleaned_cases = cleaned_cases %>%
   rename(id_cases = id) %>%
   mutate(firstname=toupper(firstname),
@@ -312,7 +322,6 @@ cleaned_locations = cleaned_locations %>%
   rename(id_locations = id) %>%
   mutate(name=toupper(name))
 
-
 cleaned_relationships = cleaned_relationships %>%
   rename(id_relationships = id) %>%
   mutate(source_first_name=toupper(source_first_name),
@@ -322,9 +331,7 @@ cleaned_relationships = cleaned_relationships %>%
          target_middle_name=toupper(target_middle_name),
          target_last_name=toupper(target_last_name))
 
-
 #--------Contacts per case--------------------------------------------
-
 contacts_per_case <- cleaned_relationships %>%
   group_by(source_case_contact_id,source_uid,source_first_name,source_last_name) %>%
   tally() %>%
@@ -380,13 +387,11 @@ cleaned_cases <- cleaned_cases %>%
     tolower(occupation) == "lng_reference_data_category_occupation_civil_servant"~ "Fonctionnaire",
     tolower(occupation) == "lng_reference_data_category_occupation_health_laboratory_worker"~ "Laborantin"
   )) %>%
-  
   mutate(full_name = paste0(str_replace(firstname,"_"," "), " ", str_replace(lastname,"_"," ")))  %>%
   mutate(out_come_id = case_when(
     tolower(outcomeid) == "lng_reference_data_category_outcome_alive" ~ "Vivant",
     tolower(outcomeid) == "lng_reference_data_category_outcome_deceased" ~ "Décédé"
   )) %>%
-  
   select(uuid = id_cases,
          visualid,
          full_name,
@@ -401,7 +406,8 @@ cleaned_cases <- cleaned_cases %>%
          #age_months,
          #age_years,
          age=questionnaireanswers_age_value,
-         gender=questionnaireanswers_sexe_value,
+         gender,
+         sexe,
          date_of_data_entry=createdat,
          date_become_case=datebecomecase,
          date_of_last_contact=dateoflastcontact,
@@ -411,7 +417,7 @@ cleaned_cases <- cleaned_cases %>%
          occupation,
          safeburial,
          transferrefused
-  )
+  ) 
 
 #--------------------------------------------------------------------------------------------
 cleaned_cases <- cleaned_cases %>%
@@ -420,7 +426,6 @@ cleaned_cases <- cleaned_cases %>%
   left_join(select(cleaned_relationships, source_uid, target_uid, source_case_contact_id), by = c("uuid" = "target_uid"))
 
 #--------------------------------------------------------------------------------------------
-
 cleaned_contacts <- cleaned_contacts %>%
   mutate_at(vars(contains("date")), as.character) %>%
   mutate(date_of_reporting = guess_dates(dateofreporting),
@@ -749,6 +754,26 @@ path_to_functions <- here::here("hierarchy/clean_locations.R")
 path_to_functions
 source(path_to_functions)
 
+#############################RDN##################################
+# Cleaning complete followed people all months
+
+cleaned_complete_followed_prep <- clean_data(complete_followed_prep,
+                                clean_data = FALSE,
+                                guess_dates = FALSE)
+
+cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
+  mutate(date_of_followup = guess_dates(date)) 
+cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
+  mutate(status = case_when(
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_decede" ~ "Décédé",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_missed" ~ "Perdu de vue",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_not_seen" ~ "not_seen",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_not_attempted" ~ "Pas de données",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_not_performed" ~ "Pas de données",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_seen_not_ok" ~ "Vu avec signe",
+  statusid == "lng_reference_data_contact_daily_follow_up_status_type_seen_ok" ~ "Vu sans signe"
+)) %>%
+  select(personid,date_of_followup,status)
 ###############################################################
 
 ## Save files with a date of database
@@ -807,6 +832,15 @@ relationships_rds_file_name
 rio::export(relationships,
             file.path(clean_folder, relationships_rds_file_name))
 
+## export complete followed file
+complete_followed_prep_rds_file_name <- sprintf(
+  "%sclean_%s.rds",
+  "complete_followed_prep_",
+  format(database_date, "%Y-%m-%d"))
+
+complete_followed_prep_rds_file_name 
+rio::export(cleaned_complete_followed_prep,
+            file.path(clean_folder, complete_followed_prep_rds_file_name ))
 
 ## export cases file as csv
 cases_csv_file_name <- sprintf(
