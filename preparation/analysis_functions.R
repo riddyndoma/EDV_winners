@@ -304,41 +304,34 @@ getClinicalEvaluationByElem <- function(df,week_val,elem) {
 
 ######################REGULARITY FUNCTION#######################################
 
-getRegularityFollowups <- function(contacts,df_followups,month_val) {
+getRegularityInFollowups <- function(contacts,df_followups,month_val) {
   
   base_visual_id <- contacts$visualid
   df_followups <- df_followups %>%
-    filter(month(date_of_followup)==month_val & (status == "Vu sans signe" | status == "Vu avec signe"))
+    filter(substr(date_of_followup,0,7)==month_val & (status == "Vu sans signe" | status == "Vu avec signe"))
   output <- NULL
  
   for (i in base_visual_id) {
   params=FALSE
-    for (j in df_followups$visual_id) {
-      
+    for (j in df_followups$visualid) {
+      #Verifie si Id existe
       if(!is.na(j) & !is.na(i) & tolower(i) == tolower(j)){
             params=TRUE
-            # month_val <- paste0("m-",month_val)
-            # output = rbind(output, data.frame(month_val,v,i))
       }
       
     }
+  #attribution de la valeur 1 comme présence
   if (params==TRUE) {
     v=1
     output = rbind(output, data.frame(month_val,v,i))
   }else{
     v=0
     output = rbind(output, data.frame(month_val,v,i))
+    }
   }
-  #   if(i == df_followups$visual_id){
-  #     v=1
-  #     output = rbind(output, data.frame(month_val,v,i))
-  #   }else{
-  #     v=0
-  #     output = rbind(output, data.frame(month_val,v,i))
-  #   }
-  #   
-  }
-  
+  # filtrer que la présence
+  output <- output  %>%
+    filter(v==1)  
   return(output)
 }
 
