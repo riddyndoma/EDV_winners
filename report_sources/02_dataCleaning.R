@@ -762,7 +762,8 @@ cleaned_complete_followed_prep <- clean_data(complete_followed_prep,
                                 guess_dates = FALSE)
 
 cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
-  mutate(date_of_followup = guess_dates(date)) 
+  mutate(date_of_followup = guess_dates(date),
+         visualid=contact_visualid) 
 cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
   mutate(status = case_when(
   statusid == "lng_reference_data_contact_daily_follow_up_status_type_decede" ~ "Décédé",
@@ -777,7 +778,7 @@ cleaned_complete_followed_prep <- cleaned_complete_followed_prep %>%
     contact_gender  == "lng_reference_data_category_gender_female" ~ "Femme",
     contact_gender  == "lng_reference_data_category_gender_male" ~ "Homme"
   )) %>%
-  select(personid,date_of_followup,status,gender)
+  select(personid,date_of_followup,status,gender,visualid)
 ###############################################################
 
 ## Save files with a date of database
