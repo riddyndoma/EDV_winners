@@ -380,41 +380,8 @@ g
 ```
 
 
-### Catégorisation des guéris selon les dates de sortie CTE
-
-```{r winners-out-cte, fig.height=3.5,fig.align='center'}
-
-library("lubridate")
-# 
-# df_cases <- current_clean_cases %>%
-#    select(uuid,date_of_reporting,gender) %>%
-#   mutate(p = interval( as.Date(date_of_reporting), Sys.Date()) %/% months(1),
-#          segment=case_when(
-#            p <= 6 ~ "0 - 6 mois",
-#            p > 6 & p < 13 ~ "7 - 12 mois",
-#            p > 12 & p < 19 ~ "13 - 18 mois",
-#            p > 18 & p < 25 ~ "19 - 24 mois",
-#            p > 24 ~ "25 mois et +"
-#          )) %>%
-#   mutate(gender=case_when(
-#     gender =='feminin' ~ 'Femme',
-#     gender =='masculin' ~ 'Homme'
-#   ))%>%
-#   group_by(segment,gender) %>%
-#   filter(!is.na(gender)) %>%
-#   count()
-# 
-# g <- ggplot(data=df_cases, aes(x=reorder(segment, -n), y=n, fill=segment)) +
-# geom_bar(stat="identity")+theme_classic() +labs(x="",y="Effectifs", title = "", subtitle = )
-# g <- g+geom_text( aes(label = n, y = n),position = position_dodge(0.9),vjust = 0)+facet_grid(~gender)
-# g <- g+scale_fill_poke(pokemon = 'Quilava', spread = 6)
-# g <- g+theme(axis.text.x = element_blank(),axis.ticks.x = element_blank())
-# g <- g+theme(legend.background = element_rect(fill="#b2c8d6",
-#                                   size=0.5, linetype="solid",
-#                                   colour ="#141933"))
-# g
-
-
+### -
+```{r}
 
 ```
 
@@ -1551,26 +1518,23 @@ fig
 
 ```
 
-### Généraux -> 2 
-```{r indi-generaux-2}
-
-
-```
-
 
 ### Complement
-```{r}
-test4 <- getRegularityFollowups(current_clean_contacts,current_clean_followups,4)
-test3 <- getRegularityFollowups(current_clean_contacts,current_clean_followups,3)
-test3 <- test3[sample(nrow(test3), 1000),] %>%
-  # test3 %>%
-  # head(40) %>%
-  filter(v==1)
-test4 <- test4[sample(nrow(test4), 1000),] %>%
-  # head(40) %>%
-  filter(v==1)
-people_regularity=rbind(test4,test3) %>%
-  # head(20) %>%
+```{r regularity, fig.height=9,fig.width=15,fig.align='center'}
+df_jul20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-07")
+df_aou20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-08")
+df_sept20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-09")
+df_oct20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-10")
+df_nov20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-11")
+df_dec20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-12")
+df_jan21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-01")
+df_fev21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-02")
+df_mar21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-03")
+df_avr21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-04")
+df_may21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-05")
+# df_jul20 <- df_jul20[sample(nrow(df_jul20), 1000),] 
+# df_aou20 <- df_aou20[sample(nrow(df_aou20), 1000),]
+people_regularity=rbind(df_jul20,df_aou20,df_sept20,df_oct20,df_nov20,df_dec20,df_jan21,df_fev21,df_mar21,df_avr21,df_may21) %>%
   arrange(month_val) %>%
   distinct(month_val,v,i)
 
@@ -1589,28 +1553,24 @@ colour <-c("#ec524b","#9ad3bc","#f5b461","#58A8E0","#283747")
 #                                   colour ="#222831"))
 # fig
 
-
-
-```
-
-
-```{r}
-
 library(ggplot2)
-people_regularity <- people_regularity %>%
-  mutate(month_val = paste0("m-",people_regularity$month_val))
-  rand_people <- people_regularity[sample(nrow(people_regularity), 40),] %>%
+# people_regularity <- people_regularity %>%
+  # mutate(month_val = paste0("m-",people_regularity$month_val))
+  rand_people <- people_regularity[sample(nrow(people_regularity), 50),] %>%
     mutate(presence=v,
            mois=month_val,
            id=i)
   # group_by(month_val)
 ggplot(data = rand_people, aes(x=mois, y=id, fill=presence)) + 
   geom_tile()
+
 ```
+
 
 ### Gueris suivis par mois, selon le sexe
 
-```{r survivors-followed-weekly, fig.width=9,fig.align='center',fig.height=4}
+```{r survivors-followed-weekly, fig.width=9,fig.align='center',fig.height=3.3}
+men_followed_may2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-05","m")
 men_followed_avril2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-04","m")
 men_followed_mars2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-03","m")
 men_followed_fev2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-02","m")
@@ -1622,7 +1582,7 @@ men_followed_sept2020=getFollowedPeopleByMonths(current_clean_complete_followed_
 men_followed_aout2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-08","m")
 men_followed_juil2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-07","m")
 
-men_followed_monthly=rbind(men_followed_avril2021,men_followed_mars2021,men_followed_fev2021,
+men_followed_monthly=rbind(men_followed_may2021,men_followed_avril2021,men_followed_mars2021,men_followed_fev2021,
 men_followed_janv2021,men_followed_dec2020,men_followed_nov2020,men_followed_oct2020,
 men_followed_sept2020,men_followed_aout2020,men_followed_juil2020)
 setDT(men_followed_monthly, keep.rownames = "mois") #Convert rowname to first column
@@ -1630,6 +1590,7 @@ men_followed_monthly=men_followed_monthly%>%
   mutate(sexe="Homme")
 
 #-----------------------------------------------------------------------
+women_followed_may2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-05","f")
 women_followed_avril2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-04","f")
 women_followed_mars2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-03","f")
 women_followed_fev2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-02","f")
@@ -1641,7 +1602,7 @@ women_followed_sept2020=getFollowedPeopleByMonths(current_clean_complete_followe
 women_followed_aout2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-08","f")
 women_followed_juil2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-07","f")
 
-women_followed_monthly=rbind(women_followed_avril2021,women_followed_mars2021,women_followed_fev2021,
+women_followed_monthly=rbind(women_followed_may2021,women_followed_avril2021,women_followed_mars2021,women_followed_fev2021,
 women_followed_janv2021,women_followed_dec2020,women_followed_nov2020,women_followed_oct2020,
 women_followed_sept2020,women_followed_aout2020,women_followed_juil2020)
 setDT(women_followed_monthly, keep.rownames = "mois") #Convert rowname to first column
@@ -1649,6 +1610,7 @@ women_followed_monthly=women_followed_monthly%>%
   mutate(sexe="Femme")
 
 #------------------------------------------------------------------------
+all_followed_may2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-05","")
 all_followed_avril2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-04","")
 all_followed_mars2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-03","")
 all_followed_fev2021=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2021-02","")
@@ -1660,7 +1622,7 @@ all_followed_sept2020=getFollowedPeopleByMonths(current_clean_complete_followed_
 all_followed_aout2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-08","")
 all_followed_juil2020=getFollowedPeopleByMonths(current_clean_complete_followed_prep,"2020-07","")
 
-all_followed_monthly=rbind(all_followed_avril2021,all_followed_mars2021,all_followed_fev2021,
+all_followed_monthly=rbind(all_followed_may2021,all_followed_avril2021,all_followed_mars2021,all_followed_fev2021,
 all_followed_janv2021,all_followed_dec2020,all_followed_nov2020,all_followed_oct2020,
 all_followed_sept2020,all_followed_aout2020,all_followed_juil2020)
 setDT(all_followed_monthly, keep.rownames = "mois") #Convert rowname to first column
@@ -1677,7 +1639,7 @@ colour <-c("#ec524b","#9ad3bc","#f5b461")
 
 fig <- ggplot2::ggplot(data = people_seen_monthly)+geom_line(aes(x=mois,y=n,colour = sexe, group=sexe),size=1)
 fig <- fig + theme(legend.position="bottom", legend.direction="horizontal", legend.title = element_blank())
-fig <- fig + theme_classic()+labs(x="",y="Nombre de gueris", title = "Guéris suivis par mois, selon le sexe", subtitle = )
+fig <- fig + theme_classic()+labs(x="",y="Nombre de gueris", title = "Evolution du nombre de guéris suivis mensuellement, selon le sexe", subtitle = )
 fig <- fig + scale_colour_manual(values=colour)
 
 fig <- fig + theme(legend.background = element_rect(fill="#f2f4c0",
@@ -1685,5 +1647,44 @@ fig <- fig + theme(legend.background = element_rect(fill="#f2f4c0",
                                   colour ="#222831"))
 fig
 
+
+```
+
+### Catégorisation des guéris selon les dates de sortie CTE
+
+```{r winners-out-cte, fig.height=3.5,fig.align='center'}
+
+library("lubridate")
+
+current_clean_cases$sexe <- ifelse(is.na(current_clean_cases$sexe), current_clean_cases$gender, current_clean_cases$sexe)
+df_cases <- current_clean_cases %>%
+   mutate(sexe=case_when(
+    tolower(sexe) =='feminin' ~ 'Femme',
+    tolower(sexe) =='masculin' ~ 'Homme',
+    tolower(sexe) =='femme' ~ 'Femme',
+    tolower(sexe) =='homme' ~ 'Homme'
+  ))%>%
+  mutate(p = interval(as.Date(date_of_reporting), Sys.Date()) %/% months(1),
+         segment=case_when(
+           p <= 6 ~ "0 - 6 mois",
+           p > 6 & p < 13 ~ "7 - 12 mois",
+           p > 12 & p < 19 ~ "13 - 18 mois",
+           p > 18 & p < 25 ~ "19 - 24 mois",
+           p > 24 ~ "25 mois et +"
+         )) %>%
+ 
+  group_by(segment,sexe) %>%
+  filter(!is.na(sexe)) %>%
+  count()
+
+g <- ggplot(data=df_cases, aes(x=reorder(segment, -n), y=n, fill=segment)) +
+geom_bar(stat="identity")+theme_classic() +labs(x="",y="Effectifs", title = "", subtitle = )
+g <- g+geom_text( aes(label = n, y = n),position = position_dodge(0.9),vjust = 0)+facet_grid(~sexe)
+g <- g+scale_fill_poke(pokemon = 'Quilava', spread = 6)
+g <- g+theme(axis.text.x = element_blank(),axis.ticks.x = element_blank())
+g <- g+theme(legend.background = element_rect(fill="#b2c8d6",
+                                  size=0.5, linetype="solid",
+                                  colour ="#141933"))
+g
 
 ```
