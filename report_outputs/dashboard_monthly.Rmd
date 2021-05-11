@@ -287,7 +287,6 @@ show_tab1
 ```
 
 ### Repartition des guéris par sexe
-
 ```{r repartition-by-sex, fig.height=5}
 
 # survivors_men=getSurvivorsBySex(current_clean_contacts,"m") %>%
@@ -556,8 +555,8 @@ new_clin_followed
 
 ```
 
-### Indicateurs partie biologique
 
+### Indicateurs partie biologique
 ```{r vih-data}
 
 number_tested_vih_current_month=dfw_30days_followups %>%
@@ -646,9 +645,6 @@ tab_sperme <- tab_sperme %>%
   add_row(Designation="Le nombre des femmes testées positives",n=0) %>%
   add_row(Designation="# de tests positifs lors des accouchements chez les guéris (Lait Maternel, Annexes fœtales)",n=0) %>%
   add_row(Designation="# de tests négatifs lors des accouchements chez les guéris (Lait Maternel, Annexes fœtales)",n=0)
-
-  
-
 
 
 #Convert rownames to first column
@@ -803,9 +799,8 @@ new_pycho_followed <- tibble(structure_suivi_psychologique,n) %>%
  
 new_pycho_followed
 
-
-
 ```
+
 
 #### -
 ```{r eval-psycho, fig.height=3.3,fig.width=9,fig.align='center'}
@@ -914,7 +909,6 @@ fig
 
 
 ### Indicateurs partie nutrition
-
 ```{r nutrition}
 
 number_nutritions_followed_current_month = dfw_30days_followups %>%
@@ -992,7 +986,6 @@ new_nutrition_followed
 Column {data-width=35%}
 -----------------------------------------------------------------------
 ### Répartition des guéris réçus, par etat de santé (mois encours)
-
 ```{r survivors-health-status, out.width = '80%'}
 
 sick_people_current_month=dfw_30days_followups %>%
@@ -1023,9 +1016,7 @@ g=g+theme(legend.background = element_rect(fill="#f6f5f5",
                                   colour ="#0f3057"))
 g
 
-
 ```
-
 
 
 ### C2
@@ -1501,9 +1492,6 @@ people_psycho_weekly=rbind(tristesse_followed_weekly,
                            honte_followed_weekly,probleme_sommeil_recurrent_followed_weekly) %>%
   arrange(semaine)
 
-# people_psycho_weekly$semaine <- factor(people_psycho_weekly$semaine, levels = rev(levels(people_psycho_weekly$semaine))) 
-
-# colour <- c("#58A8E0","#ed6b90","#06d6a0")
 colour <-c("#ec524b","#9ad3bc","#f5b461","#58A8E0","#283747")
 
 fig <- ggplot2::ggplot(data = people_psycho_weekly)+geom_line(aes(x=semaine,y=n,colour = eval, group=eval),size=3)
@@ -1519,50 +1507,17 @@ fig
 ```
 
 
-### Complement
-```{r regularity, fig.height=9,fig.width=15,fig.align='center'}
-df_jul20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-07")
-df_aou20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-08")
-df_sept20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-09")
-df_oct20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-10")
-df_nov20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-11")
-df_dec20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-12")
-df_jan21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-01")
-df_fev21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-02")
-df_mar21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-03")
-df_avr21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-04")
-df_may21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-05")
-# df_jul20 <- df_jul20[sample(nrow(df_jul20), 1000),] 
-# df_aou20 <- df_aou20[sample(nrow(df_aou20), 1000),]
-people_regularity=rbind(df_jul20,df_aou20,df_sept20,df_oct20,df_nov20,df_dec20,df_jan21,df_fev21,df_mar21,df_avr21,df_may21) %>%
-  arrange(month_val) %>%
-  distinct(month_val,v,i)
+### Test
+```{r rest , fig.height=5,fig.width=19,fig.align='center'}
+library(plotly)
 
-# people_psycho_weekly$semaine <- factor(people_psycho_weekly$semaine, levels = rev(levels(people_psycho_weekly$semaine))) 
-
-# colour <- c("#58A8E0","#ed6b90","#06d6a0")
-colour <-c("#ec524b","#9ad3bc","#f5b461","#58A8E0","#283747")
-
-# fig <- ggplot2::ggplot(data = people_regularity)+geom_line(aes(x=month_val, y=i, group=i),size=3)
-# fig <- fig + theme(legend.position="bottom", legend.direction="horizontal", legend.title = element_blank())
-# fig <- fig + theme_classic()+labs(x="",y="ID Guéris", title = "La régularité des guéris au suivi", subtitle = )
-# fig <- fig + scale_colour_manual(values=colour)
-# 
-# fig <- fig + theme(legend.background = element_rect(fill="#f2f4c0",
-#                                   size=1, linetype="solid", 
-#                                   colour ="#222831"))
+#   rand_people <- people_regularity %>%
+#     mutate(presence=v,
+#            mois=month_val,
+#            id=i)
+# fig <- plot_ly(z = rand_people,type = "heatmap")
 # fig
 
-library(ggplot2)
-# people_regularity <- people_regularity %>%
-  # mutate(month_val = paste0("m-",people_regularity$month_val))
-  rand_people <- people_regularity[sample(nrow(people_regularity), 50),] %>%
-    mutate(presence=v,
-           mois=month_val,
-           id=i)
-  # group_by(month_val)
-ggplot(data = rand_people, aes(x=mois, y=id, fill=presence)) + 
-  geom_tile()
 
 ```
 
@@ -1634,7 +1589,6 @@ all_followed_monthly=all_followed_monthly%>%
 people_seen_monthly=rbind(all_followed_monthly,men_followed_monthly,women_followed_monthly) %>%
   arrange(mois)
 
-# colour <- c("#58A8E0","#ed6b90","#06d6a0")
 colour <-c("#ec524b","#9ad3bc","#f5b461")
 
 fig <- ggplot2::ggplot(data = people_seen_monthly)+geom_line(aes(x=mois,y=n,colour = sexe, group=sexe),size=1)
@@ -1686,5 +1640,264 @@ g <- g+theme(legend.background = element_rect(fill="#b2c8d6",
                                   size=0.5, linetype="solid",
                                   colour ="#141933"))
 g
+
+```
+
+REGULARITE AU SUIVI {data-icon="fa-notes-medical"}
+===========================================================================
+Column {.tabset data-width=100%}
+---------------------------------------------------------------------------
+
+### Régularité (1)
+```{r regularity-1, fig.height=6,fig.width=21}
+
+
+df_jul20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-07")
+df_aou20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-08")
+df_sept20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-09")
+df_oct20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-10")
+df_nov20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-11")
+df_dec20 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2020-12")
+df_jan21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-01")
+df_fev21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-02")
+df_mar21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-03")
+df_avr21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-04")
+df_may21 <- getRegularityInFollowups(current_clean_contacts,current_clean_complete_followed_prep,"2021-05")
+people_regularity=rbind(df_jul20,df_aou20,df_sept20,df_oct20,df_nov20,df_dec20,df_jan21,df_fev21,df_mar21,df_avr21,df_may21) %>%
+  arrange(month_val) %>%
+  distinct(month_val,v,i)
+
+#Suppression de doublon
+df_visualid <- people_regularity %>%
+  select(id=i) %>%
+  distinct()
+
+parts_list <- split(df_visualid, (seq(nrow(df_visualid))-1) %/% 68) # Devivier le ID en sous df de 68 lignes
+ 
+people_regularity <- people_regularity %>%
+    mutate(presence=v,
+           mois=month_val,
+           id=i) %>%
+    select(mois,id,presence)  
+
+part1_id <- parts_list[[1]]
+part2_id <- parts_list[[2]]
+part3_id <- parts_list[[3]]
+part4_id <- parts_list[[4]]
+part5_id <- parts_list[[5]]
+part6_id <- parts_list[[6]]
+part7_id <- parts_list[[7]]
+part8_id <- parts_list[[8]]
+part9_id <- parts_list[[9]]
+part10_id <- parts_list[[10]]
+part11_id <- parts_list[[11]]
+part12_id <- parts_list[[12]]
+part13_id <- parts_list[[13]]
+part14_id <- parts_list[[14]]
+part15_id <- parts_list[[15]]
+part16_id <- parts_list[[16]]
+
+part1 <- people_regularity %>%
+  filter( id %in% part1_id$id)
+
+fig <- ggplot(data = part1, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (2)
+```{r regularity-2, fig.height=6,fig.width=21}
+
+part2 <- people_regularity %>%
+  filter( id %in% part2_id$id)
+     
+fig <- ggplot(data = part2, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (3)
+```{r regularity-3, fig.height=6,fig.width=21}
+
+part3 <- people_regularity %>%
+  filter( id %in% part3_id$id)
+     
+fig <- ggplot(data = part3, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (4)
+```{r regularity-4, fig.height=6,fig.width=21}
+
+part4 <- people_regularity %>%
+  filter( id %in% part4_id$id)
+     
+fig <- ggplot(data = part4, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (5)
+```{r regularity-5, fig.height=6,fig.width=21}
+
+part5 <- people_regularity %>%
+  filter( id %in% part5_id$id)
+     
+fig <- ggplot(data = part5, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (6)
+```{r regularity-6, fig.height=6,fig.width=21}
+
+part6 <- people_regularity %>%
+  filter( id %in% part6_id$id)
+     
+fig <- ggplot(data = part6, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (7)
+```{r regularity-7, fig.height=6,fig.width=21}
+
+part7 <- people_regularity %>%
+  filter( id %in% part7_id$id)
+     
+fig <- ggplot(data = part7, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (8)
+```{r regularity-8, fig.height=6,fig.width=21}
+
+part8 <- people_regularity %>%
+  filter( id %in% part8_id$id)
+     
+fig <- ggplot(data = part8, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (9)
+```{r regularity-9, fig.height=6,fig.width=21}
+
+part9 <- people_regularity %>%
+  filter( id %in% part9_id$id)
+     
+fig <- ggplot(data = part9, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (10)
+```{r regularity-10, fig.height=6,fig.width=21}
+
+part10 <- people_regularity %>%
+  filter( id %in% part10_id$id)
+     
+fig <- ggplot(data = part10, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (11)
+```{r regularity-11, fig.height=6,fig.width=21}
+
+part11 <- people_regularity %>%
+  filter( id %in% part11_id$id)
+     
+fig <- ggplot(data = part11, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (12)
+```{r regularity-12, fig.height=6,fig.width=21}
+
+part12 <- people_regularity %>%
+  filter( id %in% part12_id$id)
+     
+fig <- ggplot(data = part12, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (13)
+```{r regularity-13, fig.height=6,fig.width=21}
+
+part13 <- people_regularity %>%
+  filter( id %in% part13_id$id)
+     
+fig <- ggplot(data = part13, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (14)
+```{r regularity-14, fig.height=6,fig.width=21}
+
+part14 <- people_regularity %>%
+  filter( id %in% part14_id$id)
+     
+fig <- ggplot(data = part14, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (15)
+```{r regularity-15, fig.height=6,fig.width=21}
+
+part15 <- people_regularity %>%
+  filter( id %in% part15_id$id)
+     
+fig <- ggplot(data = part15, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
+
+```
+
+### Régularité (16)
+```{r regularity-16, fig.height=6,fig.width=21}
+
+part16 <- people_regularity %>%
+  filter( id %in% part16_id$id)
+     
+fig <- ggplot(data = part16, aes(x=id, y=mois, fill=presence)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+fig
 
 ```
