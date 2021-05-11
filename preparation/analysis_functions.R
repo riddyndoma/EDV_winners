@@ -349,4 +349,3 @@ getRegularityInFollowups <- function(contacts,df_followups,month_val) {
 
 
 
-
