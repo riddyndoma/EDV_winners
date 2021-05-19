@@ -93,6 +93,13 @@ contacts <- as_tibble(fromJSON(json_contacts, flatten = TRUE)) %>%
 # json_events <- content(response_events, as = "text")
 # events <- as_tibble(fromJSON(json_events, flatten = TRUE))
 
+# import locations hierarchy 
+response_loc_h <- GET(paste0(url,"api/outbreaks/",outbreak_id,"/locations/hierarchical"), 
+                      add_headers(Authorization = paste("Bearer", access_token, sep = " "))
+)
+json_loc_h<- content(response_loc_h , as = "text")
+loc_hierarchy <- as_tibble(fromJSON(json_loc_h, flatten = TRUE))
+
 # import oubtreak Contact of Contacts 
 response_contacts_of_contacts <- GET(paste0(url,"api/outbreaks/",outbreak_id,"/contacts-of-contacts"), 
                                      add_headers(Authorization = paste("Bearer", access_token, sep = " "))
