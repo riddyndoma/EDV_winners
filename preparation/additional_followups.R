@@ -229,6 +229,3 @@ complete_followed_prep <- prepareDFWinnersFollowedByMonth(followups_juillet2020,
                                                         followups_mars2021,
                                                         followups_avril2021,
                                                         followups_may2021)
-
-complete_followed_prep <- complete_followed_prep %>%
-  filter(statusId !='LNG_REFERENCE_DATA_CONTACT_DAILY_FOLLOW_UP_STATUS_TYPE_NOT_PERFORMED')
